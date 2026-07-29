@@ -6,7 +6,6 @@
   <title>رنگول | Rangoool</title>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
   <style>
-    /* همان استایل‌های قبلی */
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
       font-family: 'Vazirmatn', sans-serif;
@@ -223,12 +222,12 @@
     <div class="card">
       <div class="stats-bar">
         <div class="stat-item"><span>✅</span> <span id="scoreDisplay">0</span></div>
-        <div class="stat-item"><span>⏳</span> <span id="timerDisplay">2.50</span>s</div>  <!-- تغییر: نمایش تایم اولیه -->
+        <div class="stat-item"><span>⏳</span> <span id="timerDisplay">5.00</span>s</div>
       </div>
       <div class="word-display" id="wordDisplay"></div>
       <div class="hint">
-        <span>👈 چپ: هماهنگ</span>
-        <span>راست: ناهماهنگ 👉</span>
+        <span>👈 چپ: ناهماهنگ</span>
+        <span>راست: هماهنگ 👉</span>
       </div>
     </div>
     <div class="menu-btn" id="menuToggle"><span></span><span></span><span></span></div>
@@ -257,7 +256,7 @@
 
   <script>
     (() => {
-      // DOM elements (بدون تغییر)
+      // DOM elements
       const wordDisplay = document.getElementById('wordDisplay');
       const scoreDisplay = document.getElementById('scoreDisplay');
       const timerDisplay = document.getElementById('timerDisplay');
@@ -273,34 +272,37 @@
       const confettiCanvas = document.getElementById('confetti-canvas');
       const ctx = confettiCanvas.getContext('2d');
 
-      // Translations (بدون تغییر)
+      // Translations
       const translations = {
         fa: {
           title: 'رنگول | Rangoool',
           startMsg: 'برای شروع کلیک کن',
           gameOverTitle: 'رنگول | Rangoool',
           gameOverSub: 'متاسفانه باختی...!',
+          cooldownMsg: 'شروع دور جدید تا ۲ ثانیه دیگر...',
           colors: ['آبی','سبز','قرمز','مشکی','بنفش','زرد','نارنجی','قهوه‌ای','صورتی'],
           menuTitle: 'منو', home: 'صفحه اصلی', language: 'زبان', record: 'رکورد',
-          hintLeft: 'چپ: هماهنگ', hintRight: 'راست: ناهماهنگ'
+          hintLeft: 'چپ: ناهماهنگ', hintRight: 'راست: هماهنگ'
         },
         en: {
           title: 'Rangoool | Rangoool',
           startMsg: 'Tap to start',
           gameOverTitle: 'Rangoool | Rangoool',
           gameOverSub: 'Unfortunately you lost...!',
+          cooldownMsg: 'New round starts in 2 seconds...',
           colors: ['Blue','Green','Red','Black','Purple','Yellow','Orange','Brown','Pink'],
           menuTitle: 'Menu', home: 'Home', language: 'Language', record: 'Record',
-          hintLeft: 'Left: Match', hintRight: 'Right: Mismatch'
+          hintLeft: 'Left: Mismatch', hintRight: 'Right: Match'
         },
         ar: {
           title: 'رانجول | Rangoool',
           startMsg: 'انقر للبدء',
           gameOverTitle: 'رانجول | Rangoool',
           gameOverSub: 'للأسف خسرت...!',
+          cooldownMsg: 'تبدأ الجولة الجديدة خلال ثانيتين...',
           colors: ['أزرق','أخضر','أحمر','أسود','بنفسجي','أصفر','برتقالي','بني','وردي'],
           menuTitle: 'القائمة', home: 'الرئيسية', language: 'اللغة', record: 'السجل',
-          hintLeft: 'يسار: متطابق', hintRight: 'يمين: غير متطابق'
+          hintLeft: 'يسار: غير متطابق', hintRight: 'يمين: متطابق'
         }
       };
 
@@ -311,14 +313,16 @@
       };
 
       let currentLang = 'fa';
-      // تغییر: base time = 2500
-      let score = 0, timeLimit = 2500, timeLeft = 2500, timerInterval = null; // خط 156
+      let score = 0, timeLimit = 5000, timeLeft = 5000, timerInterval = null;
       let gameActive = false, gameStarted = false;
       let currentWordKey = null, currentColorKey = null;
       let confettiParticles = [], confettiAnimationId = null;
       let record = parseInt(localStorage.getItem('rangoool_record')) || 0;
+      let gameOverCooldown = false;
+      let cooldownInterval = null;
+      let cooldownSeconds = 0;
 
-      // Audio (بدون تغییر)
+      // Audio
       let audioCtx = null;
       function initAudio() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -339,7 +343,6 @@
       function soundWrong() { playTone(220, 'square', 0.2); }
       function soundLose() { playTone(150, 'triangle', 0.4, 0.2); }
 
-      // Vibration (بدون تغییر)
       function vibrateGamepad(duration = 200) {
         const gamepads = navigator.getGamepads();
         for (const gp of gamepads) {
@@ -352,12 +355,36 @@
         }
       }
 
-      // Canvas confetti (بدون تغییر)
+      // Canvas confetti
       function resizeCanvas() { confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight; }
       window.addEventListener('resize', resizeCanvas); resizeCanvas();
-      function createConfetti() { /* ... مثل قبل */ }
-      function stopConfetti() { /* ... */ }
-      function animateConfetti() { /* ... */ }
+      function createConfetti() {
+        confettiParticles = [];
+        for (let i=0; i<120; i++) {
+          confettiParticles.push({
+            x: Math.random()*confettiCanvas.width, y: Math.random()*confettiCanvas.height - confettiCanvas.height,
+            size: Math.random()*8+4, speedY: Math.random()*4+2, speedX: Math.random()*2-1,
+            color: `hsl(${Math.random()*360},80%,65%)`, rotation: Math.random()*360, rotationSpeed: Math.random()*10-5
+          });
+        }
+      }
+      function stopConfetti() { confettiParticles = []; if(confettiAnimationId) cancelAnimationFrame(confettiAnimationId); ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height); }
+      function animateConfetti() {
+        if(!confettiParticles.length) return stopConfetti();
+        ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+        let alive = false;
+        confettiParticles.forEach(p => {
+          p.y += p.speedY; p.x += p.speedX; p.rotation += p.rotationSpeed;
+          if(p.y < confettiCanvas.height+50) {
+            alive = true;
+            ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rotation*Math.PI/180);
+            ctx.fillStyle = p.color; ctx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);
+            ctx.restore();
+          }
+        });
+        if(alive) confettiAnimationId = requestAnimationFrame(animateConfetti);
+        else stopConfetti();
+      }
       function triggerConfetti() { stopConfetti(); createConfetti(); animateConfetti(); }
 
       function updateRecordDisplay() { recordDisplay.textContent = `🏆 ${translations[currentLang].record}: ${record}`; }
@@ -371,7 +398,7 @@
         homeBtn.textContent = '🏠 '+translations[currentLang].home;
         document.querySelector('.sidebar label').textContent = '🌐 '+translations[currentLang].language;
         updateRecordDisplay();
-        if(!gameActive && !gameStarted) {
+        if(!gameActive && !gameStarted && !gameOverCooldown) {
           overlayGameTitle.textContent = translations[currentLang].title;
           overlayMessage.textContent = translations[currentLang].startMsg;
         }
@@ -397,19 +424,14 @@
         setTimeout(()=> wordDisplay.style.transform='scale(1)', 80);
       }
 
-      // تابع کلیدی: تعیین timeLimit با توجه به امتیاز
       function resetTimer() {
         clearInterval(timerInterval);
-        // تغییر: محاسبه تایم با پایه ۲۵۰۰ و کف متغیر
-        const baseTime = 2500;
+        const baseTime = 5000;
         const reduction = score * 500;
         let minTime;
-        if (score < 15) {
-          minTime = 1000;       // قفل روی ۱ ثانیه تا ۱۵ امتیاز
-        } else {
-          minTime = 750;        // بعد از ۱۵ امتیاز، اجازه کاهش تا ۰.۷۵
-        }
-        timeLimit = Math.max(minTime, baseTime - reduction);  // خط ۲۳۴
+        if (score < 15) minTime = 1000;
+        else minTime = 750;
+        timeLimit = Math.max(minTime, baseTime - reduction);
         timeLeft = timeLimit;
         timerDisplay.textContent = (timeLeft/1000).toFixed(2);
       }
@@ -422,14 +444,18 @@
           else timerDisplay.textContent = (timeLeft/1000).toFixed(2);
         },30);
       }
+
       function startGame() {
+        if (gameOverCooldown) return;
         initAudio();
         if(gameActive) return;
-        stopConfetti(); overlay.classList.add('hidden');
+        stopConfetti();
+        overlay.classList.add('hidden');
         gameActive = true; gameStarted = true;
         score = 0; scoreDisplay.textContent='0';
         displayWord(); startTimer(); updateUI();
       }
+
       function endGame() {
         if(!gameActive) return;
         clearInterval(timerInterval);
@@ -438,41 +464,62 @@
         if(score>record) { record=score; localStorage.setItem('rangoool_record', record); }
         triggerConfetti();
         overlayGameTitle.textContent = translations[currentLang].gameOverTitle;
-        overlayMessage.textContent = translations[currentLang].gameOverSub;
-        overlayScore.textContent = score; overlayScore.style.display='block';
+        overlayScore.textContent = score;
+        overlayScore.style.display='block';
         overlay.classList.remove('hidden');
         wordDisplay.textContent = '';
-        updateRecordDisplay(); updateUI();
+        updateRecordDisplay();
+        // Start cooldown with countdown display
+        gameOverCooldown = true;
+        cooldownSeconds = 2;
+        overlayMessage.textContent = translations[currentLang].cooldownMsg + ' (' + cooldownSeconds + ')';
+        cooldownInterval = setInterval(() => {
+          cooldownSeconds--;
+          if (cooldownSeconds <= 0) {
+            clearInterval(cooldownInterval);
+            cooldownInterval = null;
+            gameOverCooldown = false;
+            overlayMessage.textContent = translations[currentLang].startMsg;
+            overlayScore.style.display = 'none';
+          } else {
+            overlayMessage.textContent = translations[currentLang].cooldownMsg + ' (' + cooldownSeconds + ')';
+          }
+        }, 1000);
+        updateUI();
       }
+
       function handleUserClick(side) {
         if(!gameActive) return;
         const isMatch = (currentWordKey === currentColorKey);
-        const correctSide = isMatch ? 'left' : 'right';
+        const correctSide = isMatch ? 'right' : 'left';
         if(side === correctSide) {
           soundCorrect();
           score++; scoreDisplay.textContent = score;
-          displayWord(); resetTimer(); startTimer(); // resetTimer تایم جدید را با امتیاز جدید محاسبه می‌کند
+          displayWord(); resetTimer(); startTimer();
         } else {
           soundWrong(); vibrateGamepad(100);
           endGame();
         }
       }
 
-      // تابع برگشت به حالت اولیه (resetToIdle) – باید تایم اولیه را ۲۵۰۰ بگذارد
       function resetToIdle() {
-        clearInterval(timerInterval); stopConfetti();
+        clearInterval(timerInterval);
+        clearInterval(cooldownInterval);
+        stopConfetti();
         gameActive = false; gameStarted = false; score = 0;
-        timeLimit = 2500; timeLeft = 2500;  // خط ۲۷۲ – تغییر
+        timeLimit = 5000; timeLeft = 5000;
         wordDisplay.textContent = ''; wordDisplay.style.color = '#000';
-        scoreDisplay.textContent='0'; timerDisplay.textContent='2.50'; // نمایش ۲.۵۰
+        scoreDisplay.textContent='0'; timerDisplay.textContent='5.00';
         overlayGameTitle.textContent = translations[currentLang].title;
         overlayMessage.textContent = translations[currentLang].startMsg;
         overlayScore.style.display = 'none';
         overlay.classList.remove('hidden');
+        gameOverCooldown = false;
+        cooldownSeconds = 0;
         updateUI();
       }
 
-      // --- Mouse/Touch handlers (بدون تغییر) ---
+      // Mouse / touch handlers
       document.body.addEventListener('click', e => {
         if(e.target.closest('#menuToggle') || e.target.closest('#sidebar')) return;
         if(!gameActive) { startGame(); return; }
@@ -496,20 +543,21 @@
         document.documentElement.dir = (currentLang==='en')?'ltr':'rtl';
         updateUI();
         if(gameActive && currentWordKey) wordDisplay.textContent = translations[currentLang].colors[colorKeys.indexOf(currentWordKey)];
-        if(!gameActive) { overlayGameTitle.textContent = translations[currentLang].title; overlayMessage.textContent = translations[currentLang].startMsg; }
+        if(!gameActive) {
+          overlayGameTitle.textContent = translations[currentLang].title;
+          if (!gameOverCooldown) overlayMessage.textContent = translations[currentLang].startMsg;
+        }
       });
 
-      // Gamepad API (بدون تغییر)
+      // Gamepad API
       let gamepadConnected = false;
-      const gamepadState = { leftPressed: false, rightPressed: false, dpadUp: false, dpadDown: false, x: false, square: false, l1: false, r1: false, touchClick: false };
+      const gamepadState = { leftPressed: false, rightPressed: false, touchClick: false };
       function handleGamepadInput() {
         const gamepads = navigator.getGamepads();
         for (const gp of gamepads) {
           if (!gp) continue;
           const buttons = gp.buttons;
           const axes = gp.axes;
-          const dpadUp = buttons[12]?.pressed || false;
-          const dpadDown = buttons[13]?.pressed || false;
           const dpadLeft = buttons[14]?.pressed || false;
           const dpadRight = buttons[15]?.pressed || false;
           const cross = buttons[0]?.pressed || false;
@@ -520,9 +568,7 @@
           const r2 = buttons[7]?.value > 0.5 || false;
           const touchClick = buttons[13]?.pressed || false;
 
-          if (sidebar.classList.contains('open')) {
-            // menu navigation ...
-          } else {
+          if (!sidebar.classList.contains('open')) {
             const leftAction = dpadLeft || l1 || l2 || (axes[0] < -0.5) || (square && !gamepadState.square);
             const rightAction = dpadRight || r1 || r2 || (axes[0] > 0.5) || (cross && !gamepadState.x);
             if (leftAction && !gamepadState.leftPressed) { handleUserClick('left'); gamepadState.leftPressed = true; }
@@ -535,20 +581,17 @@
             }
             gamepadState.touchClick = touchClick;
           }
-          gamepadState.dpadUp = dpadUp; gamepadState.dpadDown = dpadDown;
-          gamepadState.x = cross; gamepadState.square = square;
         }
         requestAnimationFrame(handleGamepadInput);
       }
-      window.addEventListener("gamepadconnected", (e) => {
-        console.log("Gamepad connected:", e.gamepad.id);
+      window.addEventListener("gamepadconnected", () => {
         gamepadConnected = true;
         initAudio();
         requestAnimationFrame(handleGamepadInput);
       });
       window.addEventListener("gamepaddisconnected", () => { gamepadConnected = false; });
 
-      // Initial setup
+      // Initialization
       updateRecordDisplay();
       updateUI();
       resetToIdle();
