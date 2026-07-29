@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>رنگول | Rangoool</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      background: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+      margin: 0;
+      padding: 20px;
+      direction: rtl;
+    }
+    .game-wrapper {
+      width: 100%;
+      max-width: 500px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .main-title {
+      font-size: 3.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #1976D2, #4CAF50, #F44336, #FF9800, #9C27B0, #E91E63);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+      text-align: center;
+      line-height: 1.2;
+      letter-spacing: 2px;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
+    }
+    .card {
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 40px;
+      padding: 30px 25px;
+      width: 100%;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+      border: 1px solid rgba(255,255,255,0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .stats-bar {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 25px;
+      font-weight: 500;
+      color: #334155;
+      font-size: 1.1rem;
+    }
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f1f5f9;
+      padding: 8px 18px;
+      border-radius: 50px;
+    }
+    .word-display {
+      font-size: 4.5rem;
+      font-weight: 900;
+      margin: 20px 0 30px;
+      transition: 0.15s;
+      text-shadow: 2px 4px 12px rgba(0,0,0,0.1);
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hint {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      color: #64748b;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0 10px;
+      margin-top: 5px;
+    }
+    .menu-btn {
+      position: fixed;
+      top: 25px;
+      right: 25px;
+      width: 55px;
+      height: 55px;
+      background: white;
+      border-radius: 50%;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+      z-index: 1100;
+    }
+    .menu-btn span {
+      display: block;
+      width: 22px;
+      height: 3px;
+      background: #1e293b;
+      border-radius: 10px;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      right: -320px;
+      width: 300px;
+      height: 100%;
+      background: white;
+      box-shadow: -10px 0 40px rgba(0,0,0,0.08);
+      z-index: 1050;
+      padding: 30px 25px;
+      transition: right 0.4s;
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+    .sidebar.open { right: 0; }
+    .sidebar h3 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #0f172a;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 15px;
+      padding-right: 50px;
+    }
+    .sidebar label { font-weight: 600; color: #334155; margin-bottom: 8px; display: block; }
+    .sidebar select {
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: 20px;
+      border: 1px solid #cbd5e1;
+      font-family: 'Vazirmatn', sans-serif;
+      font-weight: 500;
+      background: #f8fafc;
+      outline: none;
+      font-size: 1rem;
+    }
+    .home-btn, .record-box {
+      background: #f1f5f9;
+      border: none;
+      padding: 14px;
+      border-radius: 20px;
+      font-weight: 600;
+      color: #1e293b;
+      font-family: 'Vazirmatn', sans-serif;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: 0.2s;
+      text-decoration: none;
+    }
+    .record-box {
+      background: #fef9c3;
+      justify-content: center;
+      font-weight: 700;
+      color: #854d0e;
+    }
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 900;
+      flex-direction: column;
+      text-align: center;
+      padding: 30px;
+      transition: opacity 0.3s;
+    }
+    .overlay.hidden { opacity: 0; pointer-events: none; }
+    .overlay-content {
+      background: white;
+      padding: 35px 30px;
+      border-radius: 50px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+      max-width: 320px;
+      width: 100%;
+    }
+    .game-title {
+      font-size: 2.4rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #1976D2, #4CAF50, #F44336, #FF9800, #9C27B0, #E91E63);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+    .sub-message { font-size: 1.1rem; font-weight: 500; color: #475569; margin-bottom: 15px; }
+    .score-big { font-size: 3rem; font-weight: 900; color: #0f172a; margin-top: 10px; }
+    #confetti-canvas {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 950;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-wrapper">
+    <h1 class="main-title">رنگول Rangoool</h1>
+    <div class="card">
+      <div class="stats-bar">
+        <div class="stat-item"><span>✅</span> <span id="scoreDisplay">0</span></div>
+        <div class="stat-item"><span>⏳</span> <span id="timerDisplay">1.50</span>s</div>
+      </div>
+      <div class="word-display" id="wordDisplay"></div>
+      <div class="hint">
+        <span>👈 چپ: هماهنگ</span>
+        <span>راست: ناهماهنگ 👉</span>
+      </div>
+    </div>
+    <div class="menu-btn" id="menuToggle"><span></span><span></span><span></span></div>
+    <div class="sidebar" id="sidebar">
+      <h3>منو</h3>
+      <button class="home-btn" id="homeBtn">🏠 صفحه اصلی</button>
+      <div class="record-box" id="recordDisplay">🏆 رکورد: 0</div>
+      <div>
+        <label for="langSelect">🌐 زبان</label>
+        <select id="langSelect">
+          <option value="fa">فارسی</option>
+          <option value="en">English</option>
+          <option value="ar">العربية</option>
+        </select>
+      </div>
+    </div>
+    <div class="overlay" id="overlay">
+      <div class="overlay-content">
+        <div class="game-title" id="overlayGameTitle">رنگول Rangoool</div>
+        <div class="sub-message" id="overlayMessage">برای شروع کلیک کن</div>
+        <div class="score-big" id="overlayScore" style="display:none;">0</div>
+      </div>
+    </div>
+    <canvas id="confetti-canvas"></canvas>
+  </div>
+
+  <script>
+    (() => {
+      // DOM elements
+      const wordDisplay = document.getElementById('wordDisplay');
+      const scoreDisplay = document.getElementById('scoreDisplay');
+      const timerDisplay = document.getElementById('timerDisplay');
+      const overlay = document.getElementById('overlay');
+      const overlayGameTitle = document.getElementById('overlayGameTitle');
+      const overlayMessage = document.getElementById('overlayMessage');
+      const overlayScore = document.getElementById('overlayScore');
+      const menuToggle = document.getElementById('menuToggle');
+      const sidebar = document.getElementById('sidebar');
+      const homeBtn = document.getElementById('homeBtn');
+      const langSelect = document.getElementById('langSelect');
+      const recordDisplay = document.getElementById('recordDisplay');
+      const confettiCanvas = document.getElementById('confetti-canvas');
+      const ctx = confettiCanvas.getContext('2d');
+
+      // Translations
+      const translations = {
+        fa: {
+          title: 'رنگول Rangoool',
+          startMsg: 'برای شروع کلیک کن',
+          gameOverTitle: 'رنگول Rangoool',
+          gameOverSub: 'متاسفانه باختی...!',
+          colors: ['آبی','سبز','قرمز','مشکی','بنفش','زرد','نارنجی','قهوه‌ای','صورتی'],
+          menuTitle: 'منو', home: 'صفحه اصلی', language: 'زبان', record: 'رکورد',
+          hintLeft: 'چپ: هماهنگ', hintRight: 'راست: ناهماهنگ'
+        },
+        en: {
+          title: 'Rangoool | Rangoool',
+          startMsg: 'Tap to start',
+          gameOverTitle: 'Rangoool | Rangoool',
+          gameOverSub: 'Unfortunately you lost...!',
+          colors: ['Blue','Green','Red','Black','Purple','Yellow','Orange','Brown','Pink'],
+          menuTitle: 'Menu', home: 'Home', language: 'Language', record: 'Record',
+          hintLeft: 'Left: Match', hintRight: 'Right: Mismatch'
+        },
+        ar: {
+          title: 'رانجول | Rangoool',
+          startMsg: 'انقر للبدء',
+          gameOverTitle: 'رانجول | Rangoool',
+          gameOverSub: 'للأسف خسرت...!',
+          colors: ['أزرق','أخضر','أحمر','أسود','بنفسجي','أصفر','برتقالي','بني','وردي'],
+          menuTitle: 'القائمة', home: 'الرئيسية', language: 'اللغة', record: 'السجل',
+          hintLeft: 'يسار: متطابق', hintRight: 'يمين: غير متطابق'
+        }
+      };
+
+      const colorKeys = ['blue','green','red','black','purple','yellow','orange','brown','pink'];
+      const colorCSS = {
+        blue:'#1976D2', green:'#388E3C', red:'#D32F2F', black:'#000000',
+        purple:'#7B1FA2', yellow:'#FBC02D', orange:'#F57C00', brown:'#5D4037', pink:'#D81B60'
+      };
+
+      let currentLang = 'fa';
+      let score = 0, timeLimit = 1500, timeLeft = 1500, timerInterval = null;
+      let gameActive = false, gameStarted = false;
+      let currentWordKey = null, currentColorKey = null;
+      let confettiParticles = [], confettiAnimationId = null;
+      let record = parseInt(localStorage.getItem('rangoool_record')) || 0;
+
+      // Audio
+      let audioCtx = null;
+      function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+      }
+      function playTone(freq, type, duration, volume = 0.16) {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
+      }
+      function soundCorrect() { playTone(880, 'sine', 0.1); }
+      function soundWrong() { playTone(220, 'square', 0.2); }
+      function soundLose() { playTone(150, 'triangle', 0.4, 0.2); }
+
+      // Vibration for gamepad (if supported)
+      function vibrateGamepad(duration = 200) {
+        const gamepads = navigator.getGamepads();
+        for (const gp of gamepads) {
+          if (gp && gp.vibrationActuator) {
+            gp.vibrationActuator.playEffect('dual-rumble', {
+              startDelay: 0, duration: duration,
+              weakMagnitude: 0.5, strongMagnitude: 0.8
+            });
+          }
+        }
+      }
+
+      // Canvas confetti
+      function resizeCanvas() { confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight; }
+      window.addEventListener('resize', resizeCanvas); resizeCanvas();
+      function createConfetti() {
+        confettiParticles = [];
+        for (let i=0; i<120; i++) {
+          confettiParticles.push({
+            x: Math.random()*confettiCanvas.width, y: Math.random()*confettiCanvas.height - confettiCanvas.height,
+            size: Math.random()*8+4, speedY: Math.random()*4+2, speedX: Math.random()*2-1,
+            color: `hsl(${Math.random()*360},80%,65%)`, rotation: Math.random()*360, rotationSpeed: Math.random()*10-5
+          });
+        }
+      }
+      function stopConfetti() { confettiParticles = []; if(confettiAnimationId) cancelAnimationFrame(confettiAnimationId); ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height); }
+      function animateConfetti() {
+        if(!confettiParticles.length) return stopConfetti();
+        ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+        let alive = false;
+        confettiParticles.forEach(p => {
+          p.y += p.speedY; p.x += p.speedX; p.rotation += p.rotationSpeed;
+          if(p.y < confettiCanvas.height+50) {
+            alive = true;
+            ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rotation*Math.PI/180);
+            ctx.fillStyle = p.color; ctx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);
+            ctx.restore();
+          }
+        });
+        if(alive) confettiAnimationId = requestAnimationFrame(animateConfetti);
+        else stopConfetti();
+      }
+      function triggerConfetti() { stopConfetti(); createConfetti(); animateConfetti(); }
+
+      function updateRecordDisplay() { recordDisplay.textContent = `🏆 ${translations[currentLang].record}: ${record}`; }
+      function updateUI() {
+        scoreDisplay.textContent = score;
+        timerDisplay.textContent = (timeLeft/1000).toFixed(2);
+        document.querySelector('.main-title').textContent = translations[currentLang].title;
+        document.querySelector('.hint span:first-child').textContent = '👈 '+translations[currentLang].hintLeft;
+        document.querySelector('.hint span:last-child').textContent = translations[currentLang].hintRight+' 👉';
+        document.querySelector('.sidebar h3').textContent = translations[currentLang].menuTitle;
+        homeBtn.textContent = '🏠 '+translations[currentLang].home;
+        document.querySelector('.sidebar label').textContent = '🌐 '+translations[currentLang].language;
+        updateRecordDisplay();
+        if(!gameActive && !gameStarted) {
+          overlayGameTitle.textContent = translations[currentLang].title;
+          overlayMessage.textContent = translations[currentLang].startMsg;
+        }
+      }
+
+      function getRandomWordAndColor() {
+        const idx = Math.floor(Math.random()*colorKeys.length);
+        const wKey = colorKeys[idx];
+        let cKey;
+        if(Math.random()<0.33) cKey = wKey;
+        else {
+          const others = colorKeys.filter(c=>c!==wKey);
+          cKey = others[Math.floor(Math.random()*others.length)];
+        }
+        return {wordKey:wKey, colorKey:cKey};
+      }
+      function displayWord() {
+        const {wordKey, colorKey} = getRandomWordAndColor();
+        currentWordKey = wordKey; currentColorKey = colorKey;
+        wordDisplay.textContent = translations[currentLang].colors[colorKeys.indexOf(wordKey)];
+        wordDisplay.style.color = colorCSS[colorKey];
+        wordDisplay.style.transform = 'scale(1.05)';
+        setTimeout(()=> wordDisplay.style.transform='scale(1)', 80);
+      }
+      function resetTimer() {
+        clearInterval(timerInterval);
+        timeLimit = Math.max(750, 1500 - (score*500));
+        timeLeft = timeLimit;
+        timerDisplay.textContent = (timeLeft/1000).toFixed(2);
+      }
+      function startTimer() {
+        resetTimer();
+        timerInterval = setInterval(()=>{
+          timeLeft -= 30;
+          if(timeLeft<=0) { timeLeft=0; timerDisplay.textContent='0.00'; endGame(); }
+          else timerDisplay.textContent = (timeLeft/1000).toFixed(2);
+        },30);
+      }
+      function startGame() {
+        initAudio();
+        if(gameActive) return;
+        stopConfetti(); overlay.classList.add('hidden');
+        gameActive = true; gameStarted = true;
+        score = 0; scoreDisplay.textContent='0';
+        displayWord(); startTimer(); updateUI();
+      }
+      function endGame() {
+        if(!gameActive) return;
+        clearInterval(timerInterval);
+        gameActive = false; gameStarted = false;
+        soundLose(); vibrateGamepad(300);
+        if(score>record) { record=score; localStorage.setItem('rangoool_record', record); }
+        triggerConfetti();
+        overlayGameTitle.textContent = translations[currentLang].gameOverTitle;
+        overlayMessage.textContent = translations[currentLang].gameOverSub;
+        overlayScore.textContent = score; overlayScore.style.display='block';
+        overlay.classList.remove('hidden');
+        wordDisplay.textContent = '';
+        updateRecordDisplay(); updateUI();
+      }
+      function handleUserClick(side) {
+        if(!gameActive) return;
+        const isMatch = (currentWordKey === currentColorKey);
+        const correctSide = isMatch ? 'left' : 'right';
+        if(side === correctSide) {
+          soundCorrect();
+          score++; scoreDisplay.textContent = score;
+          displayWord(); resetTimer(); startTimer();
+        } else {
+          soundWrong(); vibrateGamepad(100);
+          endGame();
+        }
+      }
+      function resetToIdle() {
+        clearInterval(timerInterval); stopConfetti();
+        gameActive = false; gameStarted = false; score = 0; timeLimit=1500; timeLeft=1500;
+        wordDisplay.textContent = ''; wordDisplay.style.color = '#000';
+        scoreDisplay.textContent='0'; timerDisplay.textContent='1.50';
+        overlayGameTitle.textContent = translations[currentLang].title;
+        overlayMessage.textContent = translations[currentLang].startMsg;
+        overlayScore.style.display = 'none';
+        overlay.classList.remove('hidden');
+        updateUI();
+      }
+
+      // --- Mouse/Touch handlers ---
+      document.body.addEventListener('click', e => {
+        if(e.target.closest('#menuToggle') || e.target.closest('#sidebar')) return;
+        if(!gameActive) { startGame(); return; }
+        const x = e.clientX || (e.touches && e.touches[0]?.clientX) || 0;
+        handleUserClick(x > window.innerWidth/2 ? 'right' : 'left');
+      });
+      document.body.addEventListener('touchstart', e => {
+        if(e.target.closest('#menuToggle') || e.target.closest('#sidebar')) return;
+      }, {passive:true});
+
+      // Menu handlers
+      menuToggle.addEventListener('click', e => { e.stopPropagation(); initAudio(); sidebar.classList.toggle('open'); });
+      homeBtn.addEventListener('click', ()=>{ sidebar.classList.remove('open'); resetToIdle(); });
+      document.addEventListener('click', e => {
+        if(sidebar.classList.contains('open') && !e.target.closest('#sidebar') && !e.target.closest('#menuToggle'))
+          sidebar.classList.remove('open');
+      });
+      langSelect.addEventListener('change', e => {
+        currentLang = e.target.value;
+        document.documentElement.lang = currentLang;
+        document.documentElement.dir = (currentLang==='en')?'ltr':'rtl';
+        updateUI();
+        if(gameActive && currentWordKey) wordDisplay.textContent = translations[currentLang].colors[colorKeys.indexOf(currentWordKey)];
+        if(!gameActive) { overlayGameTitle.textContent = translations[currentLang].title; overlayMessage.textContent = translations[currentLang].startMsg; }
+      });
+
+      // --- Gamepad API support ---
+      let gamepadConnected = false;
+      const gamepadState = { leftPressed: false, rightPressed: false, dpadUp: false, dpadDown: false, x: false, square: false, l1: false, r1: false, touchClick: false };
+
+      function handleGamepadInput() {
+        const gamepads = navigator.getGamepads();
+        for (const gp of gamepads) {
+          if (!gp) continue;
+          // PS4 button mapping (standard mapping)
+          const buttons = gp.buttons;
+          const axes = gp.axes;
+          // D-pad (usually buttons[12..15])
+          const dpadUp = buttons[12]?.pressed || false;
+          const dpadDown = buttons[13]?.pressed || false;
+          const dpadLeft = buttons[14]?.pressed || false;
+          const dpadRight = buttons[15]?.pressed || false;
+          // Face buttons: Cross (0), Circle (1), Square (2), Triangle (3)
+          const cross = buttons[0]?.pressed || false;
+          const square = buttons[2]?.pressed || false;
+          // Shoulder buttons: L1 (4), R1 (5), L2 (6), R2 (7) - these are analog but we use pressed threshold
+          const l1 = buttons[4]?.pressed || false;
+          const r1 = buttons[5]?.pressed || false;
+          const l2 = buttons[6]?.value > 0.5 || false;
+          const r2 = buttons[7]?.value > 0.5 || false;
+          // Touchpad click (button 13 sometimes) but we map button 13 if exists, else check
+          const touchClick = buttons[13]?.pressed || false; // often touchpad click
+
+          // Navigate menu with D-pad (when sidebar open)
+          if (sidebar.classList.contains('open')) {
+            if (dpadUp && !gamepadState.dpadUp) { /* scroll up or focus prev */ }
+            if (dpadDown && !gamepadState.dpadDown) { /* scroll down or focus next */ }
+            if (cross && !gamepadState.x) { /* select */ }
+            // simple: close menu on B/circle? ignore
+          } else {
+            // Game controls
+            // Map left/right actions: left = match (چپ هماهنگ), right = mismatch
+            // Using D-pad left/right, L1/R1, L2/R2, Cross/Square, left/right analog stick
+            const leftAction = dpadLeft || l1 || l2 || (axes[0] < -0.5) || (square && !gamepadState.square);
+            const rightAction = dpadRight || r1 || r2 || (axes[0] > 0.5) || (cross && !gamepadState.x);
+
+            if (leftAction && !gamepadState.leftPressed) {
+              handleUserClick('left');
+              gamepadState.leftPressed = true;
+            } else if (!leftAction) gamepadState.leftPressed = false;
+
+            if (rightAction && !gamepadState.rightPressed) {
+              handleUserClick('right');
+              gamepadState.rightPressed = true;
+            } else if (!rightAction) gamepadState.rightPressed = false;
+
+            // Touchpad click to start game or toggle menu? We'll use it to start if idle
+            if (touchClick && !gamepadState.touchClick) {
+              if (!gameActive) startGame();
+              else menuToggle.click(); // optional: toggle menu on touchpad click
+            }
+            gamepadState.touchClick = touchClick;
+          }
+          // Update state trackers
+          gamepadState.dpadUp = dpadUp;
+          gamepadState.dpadDown = dpadDown;
+          gamepadState.x = cross;
+          gamepadState.square = square;
+        }
+        requestAnimationFrame(handleGamepadInput);
+      }
+
+      window.addEventListener("gamepadconnected", (e) => {
+        console.log("Gamepad connected:", e.gamepad.id);
+        gamepadConnected = true;
+        initAudio();
+        requestAnimationFrame(handleGamepadInput);
+      });
+      window.addEventListener("gamepaddisconnected", (e) => {
+        console.log("Gamepad disconnected");
+        gamepadConnected = false;
+      });
+
+      // Initial setup
+      updateRecordDisplay();
+      updateUI();
+      resetToIdle();
+      document.body.addEventListener('touchstart', initAudio, {once: true});
+    })();
+  </script>
+</body>
+  </html>
