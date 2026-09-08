@@ -20,6 +20,17 @@
       margin: 0;
       padding: 20px;
       direction: rtl;
+      position: relative;
+    }
+    #stars-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
     }
     .game-wrapper {
       width: 100%;
@@ -29,6 +40,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      z-index: 1;
     }
     .main-title {
       font-size: 3.5rem;
@@ -67,7 +79,10 @@
       padding: 30px 25px;
       width: 100%;
       box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
-      border: 1px solid rgba(255,255,255,0.5);
+      border: 2px solid transparent;
+      background-image: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), linear-gradient(135deg, #1976D2, #4CAF50, #F44336, #FF9800, #9C27B0, #E91E63);
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -104,12 +119,20 @@
     .hint {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       width: 100%;
       color: #64748b;
       font-size: 0.9rem;
       font-weight: 500;
       padding: 0 10px;
       margin-top: 5px;
+      gap: 10px;
+    }
+    .hint-divider {
+      width: 2px;
+      height: 20px;
+      background: linear-gradient(180deg, #1976D2, #4CAF50, #F44336, #FF9800, #9C27B0, #E91E63);
+      border-radius: 2px;
     }
     .menu-btn {
       position: fixed;
@@ -126,7 +149,7 @@
       justify-content: center;
       gap: 5px;
       cursor: pointer;
-      z-index: 1100;
+      z-index: 1050;
     }
     .menu-btn span {
       display: block;
@@ -142,13 +165,14 @@
       width: 300px;
       height: 100%;
       background: white;
-      box-shadow: -10px 0 40px rgba(0,0,0,0.08);
-      z-index: 1050;
+      box-shadow: 0 0 20px rgba(0,0,0,0.03);
+      z-index: 1100;
       padding: 30px 25px;
       transition: right 0.4s;
       display: flex;
       flex-direction: column;
       gap: 25px;
+      overflow-y: auto;
     }
     .sidebar.open { right: 0; }
     .sidebar h3 {
@@ -157,21 +181,11 @@
       color: #0f172a;
       border-bottom: 2px solid #e2e8f0;
       padding-bottom: 15px;
-      padding-right: 50px;
+      margin-right: 20px;
+      text-align: right;
     }
     .sidebar label { font-weight: 600; color: #334155; margin-bottom: 8px; display: block; }
-    .sidebar select {
-      width: 100%;
-      padding: 14px 18px;
-      border-radius: 20px;
-      border: 1px solid #cbd5e1;
-      font-family: 'Vazirmatn', sans-serif;
-      font-weight: 500;
-      background: #f8fafc;
-      outline: none;
-      font-size: 1rem;
-    }
-    .home-btn, .record-box {
+    .home-btn, .record-box, .help-btn {
       background: #f1f5f9;
       border: none;
       padding: 14px;
@@ -185,6 +199,7 @@
       gap: 10px;
       transition: 0.2s;
       text-decoration: none;
+      cursor: pointer;
     }
     .record-box {
       background: #fef9c3;
@@ -192,6 +207,61 @@
       font-weight: 700;
       color: #854d0e;
     }
+    .help-btn {
+      background: #e0f2fe;
+      color: #0369a1;
+      justify-content: center;
+    }
+    .custom-select {
+      position: relative;
+      width: 100%;
+    }
+    .select-button {
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: 20px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      font-family: 'Vazirmatn', sans-serif;
+      font-weight: 500;
+      font-size: 1rem;
+      cursor: pointer;
+      text-align: right;
+      color: #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .select-arrow {
+      transition: transform 0.3s ease;
+      font-size: 0.8rem;
+    }
+    .select-arrow.open { transform: rotate(180deg); }
+    .select-options {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      left: 0;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      list-style: none;
+      padding: 0;
+      margin: 5px 0 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      z-index: 10;
+    }
+    .select-options.open { max-height: 200px; }
+    .select-options li {
+      padding: 12px 18px;
+      cursor: pointer;
+      transition: background 0.2s;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .select-options li:last-child { border-bottom: none; }
+    .select-options li:hover { background: #f1f5f9; }
     .overlay {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -225,7 +295,164 @@
       margin-bottom: 10px;
     }
     .sub-message { font-size: 1.1rem; font-weight: 500; color: #475569; margin-bottom: 15px; }
-    .score-big { font-size: 3rem; font-weight: 900; color: #0f172a; margin-top: 10px; }
+    .score-big { font-size: 5.5rem; font-weight: 900; color: #0f172a; margin-top: 10px; }
+    #newRecordBadge {
+      display: none;
+      margin-top: 20px;
+      font-size: 1.8rem;
+      font-weight: 900;
+      background: linear-gradient(45deg, #FFD700, #FFA500, #FF6347, #FF1493, #8A2BE2, #00CED1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    .cooldown-timer-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 10px;
+    }
+    .cooldown-circle {
+      position: relative;
+      width: 60px;
+      height: 60px;
+    }
+    .cooldown-circle svg { transform: rotate(-90deg); }
+    .cooldown-circle .bg {
+      fill: none;
+      stroke: #e2e8f0;
+      stroke-width: 6;
+    }
+    .cooldown-circle .progress {
+      fill: none;
+      stroke: #4CAF50;
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-dasharray: 150.8;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 0.1s linear;
+    }
+    .cooldown-number {
+      display: flex;
+      align-items: baseline;
+      gap: 0;
+      font-weight: 900;
+      color: #0f172a;
+      direction: ltr; /* عدد صحیح سمت چپ، اعشار سمت راست */
+    }
+    .cooldown-int { font-size: 1.5rem; }
+    .cooldown-decimal {
+      font-size: 0.9rem;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+    .cooldown-message {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin-top: 3px;
+    }
+    /* Help Overlay */
+    .help-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .help-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .help-modal {
+      background: white;
+      border-radius: 30px;
+      max-width: 400px;
+      width: 90%;
+      max-height: 80vh;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      text-align: right;
+    }
+    .help-header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      padding: 15px 20px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .help-close-btn {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      border: none;
+      background: #f1f5f9;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #334155;
+    }
+    .help-title {
+      font-size: 1.8rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #1976D2, #4CAF50, #F44336, #FF9800, #9C27B0, #E91E63);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .help-body {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: #1e293b;
+      white-space: pre-line;
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+      /* نوار اسکرول سفارشی */
+      scrollbar-width: thin;
+      scrollbar-color: #94a3b8 #f1f5f9;
+    }
+    .help-body::-webkit-scrollbar {
+      width: 6px;
+    }
+    .help-body::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 10px;
+    }
+    .help-body::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 10px;
+    }
+    .help-body::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+    .help-body .example {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 10px 15px;
+      margin: 10px 0;
+    }
     #confetti-canvas {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none; z-index: 950;
@@ -233,6 +460,7 @@
   </style>
 </head>
 <body>
+  <canvas id="stars-canvas"></canvas>
   <div class="game-wrapper">
     <h1 class="main-title">رنگول | Rangoool</h1>
     <div class="time-bar-container">
@@ -245,22 +473,46 @@
       </div>
       <div class="word-display" id="wordDisplay"></div>
       <div class="hint">
+        <span>👉 راست: هماهنگ</span>
+        <div class="hint-divider"></div>
         <span>👈 چپ: ناهماهنگ</span>
-        <span>راست: هماهنگ 👉</span>
       </div>
     </div>
     <div class="menu-btn" id="menuToggle"><span></span><span></span><span></span></div>
     <div class="sidebar" id="sidebar">
       <h3>منو</h3>
       <button class="home-btn" id="homeBtn">🏠 صفحه اصلی</button>
-      <div class="record-box" id="recordDisplay">🏆 رکورد: 0</div>
+      <button class="help-btn" id="helpBtn">❓ راهنما</button>
       <div>
-        <label for="langSelect">🌐 زبان</label>
-        <select id="langSelect">
-          <option value="fa">فارسی</option>
-          <option value="en">English</option>
-          <option value="ar">العربية</option>
-        </select>
+        <label>🎮 سطح</label>
+        <div class="custom-select" id="difficultySelectWrapper">
+          <button class="select-button" id="difficultyButton">
+            <span>آسان</span>
+            <span class="select-arrow">▼</span>
+          </button>
+          <ul class="select-options" id="difficultyOptions">
+            <li data-value="easy">آسان</li>
+            <li data-value="medium">متوسط</li>
+            <li data-value="hard">سخت</li>
+          </ul>
+        </div>
+      </div>
+      <div class="record-box" id="recordEasy">🏆 رکورد آسان: 0</div>
+      <div class="record-box" id="recordMedium">🏆 رکورد متوسط: 0</div>
+      <div class="record-box" id="recordHard">🏆 رکورد سخت: 0</div>
+      <div>
+        <label>🌐 زبان</label>
+        <div class="custom-select" id="langSelectWrapper">
+          <button class="select-button" id="langButton">
+            <span>فارسی</span>
+            <span class="select-arrow">▼</span>
+          </button>
+          <ul class="select-options" id="langOptions">
+            <li data-value="fa">فارسی</li>
+            <li data-value="en">English</li>
+            <li data-value="ar">العربية</li>
+          </ul>
+        </div>
       </div>
     </div>
     <div class="overlay" id="overlay">
@@ -268,9 +520,36 @@
         <div class="game-title" id="overlayGameTitle">رنگول | Rangoool</div>
         <div class="sub-message" id="overlayMessage">برای شروع کلیک کن</div>
         <div class="score-big" id="overlayScore" style="display:none;">0</div>
+        <div id="newRecordBadge">رکورد جدید | NEW</div>
+        <div id="cooldownTimerContainer" style="display:none;">
+          <div class="cooldown-timer-container">
+            <div class="cooldown-circle">
+              <svg width="60" height="60">
+                <circle class="bg" cx="30" cy="30" r="24"></circle>
+                <circle class="progress" id="cooldownProgress" cx="30" cy="30" r="24"></circle>
+              </svg>
+            </div>
+            <div class="cooldown-number">
+              <span class="cooldown-int" id="cooldownInt">2</span>
+              <span class="cooldown-decimal" id="cooldownDecimal">.00</span>
+            </div>
+            <div class="cooldown-message" id="cooldownMessage">باید ۲ ثانیه صبر کنی</div>
+          </div>
+        </div>
       </div>
     </div>
     <canvas id="confetti-canvas"></canvas>
+  </div>
+
+  <!-- Help Overlay -->
+  <div class="help-overlay" id="helpOverlay">
+    <div class="help-modal">
+      <div class="help-header">
+        <div class="help-title" id="helpTitle">🎮 راهنما</div>
+        <button class="help-close-btn" id="helpCloseBtn">✕</button>
+      </div>
+      <div class="help-body" id="helpBody"></div>
+    </div>
   </div>
 
   <script>
@@ -284,70 +563,156 @@
       const overlayGameTitle = document.getElementById('overlayGameTitle');
       const overlayMessage = document.getElementById('overlayMessage');
       const overlayScore = document.getElementById('overlayScore');
+      const newRecordBadge = document.getElementById('newRecordBadge');
+      const cooldownTimerContainer = document.getElementById('cooldownTimerContainer');
+      const cooldownProgress = document.getElementById('cooldownProgress');
+      const cooldownInt = document.getElementById('cooldownInt');
+      const cooldownDecimal = document.getElementById('cooldownDecimal');
+      const cooldownMessage = document.getElementById('cooldownMessage');
       const menuToggle = document.getElementById('menuToggle');
       const sidebar = document.getElementById('sidebar');
       const homeBtn = document.getElementById('homeBtn');
-      const langSelect = document.getElementById('langSelect');
-      const recordDisplay = document.getElementById('recordDisplay');
+      const helpBtn = document.getElementById('helpBtn');
+      const helpOverlay = document.getElementById('helpOverlay');
+      const helpCloseBtn = document.getElementById('helpCloseBtn');
+      const helpTitle = document.getElementById('helpTitle');
+      const helpBody = document.getElementById('helpBody');
+      const langButton = document.getElementById('langButton');
+      const langOptions = document.getElementById('langOptions');
+      const difficultyButton = document.getElementById('difficultyButton');
+      const difficultyOptions = document.getElementById('difficultyOptions');
+      const recordEasy = document.getElementById('recordEasy');
+      const recordMedium = document.getElementById('recordMedium');
+      const recordHard = document.getElementById('recordHard');
       const confettiCanvas = document.getElementById('confetti-canvas');
       const ctx = confettiCanvas.getContext('2d');
+      const starsCanvas = document.getElementById('stars-canvas');
+      const starsCtx = starsCanvas.getContext('2d');
 
       // Difficulty settings
-      const INITIAL_TIME_LIMIT = 10000; // 10 seconds
-      const DIFFICULTY_THRESHOLD = 25;   // after this score, game gets harder
-      const MIN_TIME_LIMIT = 4000;       // minimum time limit (4 seconds)
-      const TIME_STEP = 100;             // ms reduction per point after threshold
-      const INITIAL_MATCH_PROB = 0.5;    // 50% match at start (easier)
-      const MIN_MATCH_PROB = 0.3;        // floor for match probability
-      const MATCH_PROB_STEP = 0.004;     // decrease per point after threshold
-      const INITIAL_BONUS = 500;         // time bonus per correct answer (ms)
-      const MIN_BONUS = 200;             // minimum bonus after difficulty increases
-      const BONUS_STEP = 10;             // bonus reduction per point after threshold
+      const DIFFICULTIES = {
+        easy:   { initialTime: 12500, initialBonus: 1600, reductionStep: 50,  minBonus: 750  },
+        medium: { initialTime: 10000, initialBonus: 1000, reductionStep: 50,  minBonus: 625  },
+        hard:   { initialTime: 7500,  initialBonus: 750,  reductionStep: 500, minBonus: 450  }
+      };
+      let currentDifficulty = 'medium';
+      let currentBonus = DIFFICULTIES[currentDifficulty].initialBonus;
+      let records = {
+        easy: parseInt(localStorage.getItem('rangoool_record_easy')) || 0,
+        medium: parseInt(localStorage.getItem('rangoool_record_medium')) || 0,
+        hard: parseInt(localStorage.getItem('rangoool_record_hard')) || 0
+      };
 
-      // Translations (same as before)
+      // Translations
       const translations = {
         fa: {
-          title: 'رنگول | Rangoool',
-          startMsg: 'برای شروع کلیک کن',
-          gameOverTitle: 'رنگول | Rangoool',
-          gameOverSub: 'متاسفانه باختی...!',
-          cooldownMsg: 'شروع دور جدید تا ۲ ثانیه دیگر...',
+          title: 'رنگول | Rangoool', startMsg: 'برای شروع کلیک کن',
+          gameOverTitle: 'رنگول | Rangoool', gameOverSub: 'متاسفانه باختی...!',
+          cooldownMsg: 'باید ۲ ثانیه صبر کنی', cooldownMsgNewRecord: 'باید ۴ ثانیه صبر کنی',
           colors: ['آبی','سبز','قرمز','مشکی','بنفش','زرد','نارنجی','قهوه‌ای','صورتی'],
-          menuTitle: 'منو', home: 'صفحه اصلی', language: 'زبان', record: 'رکورد',
-          hintLeft: 'چپ: ناهماهنگ', hintRight: 'راست: هماهنگ'
+          menuTitle: 'منو', home: 'صفحه اصلی', language: 'زبان', help: 'راهنما',
+          recordEasy: 'رکورد آسان', recordMedium: 'رکورد متوسط', recordHard: 'رکورد سخت',
+          difficultyLabel: 'سطح', difficultyEasy: 'آسان', difficultyMedium: 'متوسط', difficultyHard: 'سخت',
+          hintLeft: 'چپ: ناهماهنگ', hintRight: 'راست: هماهنگ',
+          newRecord: 'رکورد جدید | NEW',
+          helpTitle: '🎮 راهنما',
+          helpBody: `👀 روی صفحه یک کلمه می‌بینی که با یک رنگ نوشته شده...
+
+🤔 باید تشخیص بدی: رنگ کلمه با معنی خود کلمه هماهنگه یا نه؟
+
+✅ اگه یکی بود ← بزن هرجایی از سمت راست صفحه
+❌ اگه فرق داشت ← بزن هرجایی سمت چپ صفحه
+
+📘 مثال‌ها:
+
+• کلمه «قرمز» با رنگ قرمز — ✅ راست
+• کلمه «آبی» با رنگ سبز — ❌ چپ
+
+⚠️ نکته: تو سطح سخت، ممکنه به‌جای «سیاه» بنویسه «مشکی» – معنی هر دو یکیه.
+
+⏱️ با هر جواب درست، زمان اضافه می‌گیری.
+💀 با جواب اشتباه یا تموم شدن وقت، بازی تموم می‌شه.
+
+🎯 هرچی بیشتر درست جواب بدی، امتیازت بیشتر می‌شه.
+
+🏆 رکوردت رو ثبت کن و از بازی لذت ببر!`
         },
         en: {
-          title: 'Rangoool | Rangoool',
-          startMsg: 'Tap to start',
-          gameOverTitle: 'Rangoool | Rangoool',
-          gameOverSub: 'Unfortunately you lost...!',
-          cooldownMsg: 'New round starts in 2 seconds...',
+          title: 'Rangoool | Rangoool', startMsg: 'Tap to start',
+          gameOverTitle: 'Rangoool | Rangoool', gameOverSub: 'Unfortunately you lost...!',
+          cooldownMsg: 'Wait 2 seconds', cooldownMsgNewRecord: 'Wait 4 seconds',
           colors: ['Blue','Green','Red','Black','Purple','Yellow','Orange','Brown','Pink'],
-          menuTitle: 'Menu', home: 'Home', language: 'Language', record: 'Record',
-          hintLeft: 'Left: Mismatch', hintRight: 'Right: Match'
+          menuTitle: 'Menu', home: 'Home', language: 'Language', help: 'Help',
+          recordEasy: 'Easy Record', recordMedium: 'Medium Record', recordHard: 'Hard Record',
+          difficultyLabel: 'Difficulty', difficultyEasy: 'Easy', difficultyMedium: 'Medium', difficultyHard: 'Hard',
+          hintLeft: 'Left: Mismatch', hintRight: 'Right: Match',
+          newRecord: 'New Record | NEW',
+          helpTitle: '🎮 Help',
+          helpBody: `👀 You see a word on the screen written in a color...
+
+🤔 You need to decide: does the color match the word's meaning?
+
+✅ If yes → tap anywhere on the right side
+❌ If no → tap anywhere on the left side
+
+📘 Examples:
+
+• Word "Red" in red color — ✅ Right
+• Word "Blue" in green color — ❌ Left
+
+⚠️ Note: In hard mode, "Black" might appear as "Dark" (same meaning).
+
+⏱️ Each correct answer gives you extra time.
+💀 Wrong answer or running out of time ends the game.
+
+🎯 The more correct answers, the higher your score.
+
+🏆 Set your record and enjoy the game!`
         },
         ar: {
-          title: 'رانجول | Rangoool',
-          startMsg: 'انقر للبدء',
-          gameOverTitle: 'رانجول | Rangoool',
-          gameOverSub: 'للأسف خسرت...!',
-          cooldownMsg: 'تبدأ الجولة الجديدة خلال ثانيتين...',
+          title: 'رانجول | Rangoool', startMsg: 'انقر للبدء',
+          gameOverTitle: 'رانجول | Rangoool', gameOverSub: 'للأسف خسرت...!',
+          cooldownMsg: 'انتظر ثانيتين', cooldownMsgNewRecord: 'انتظر ٤ ثواني',
           colors: ['أزرق','أخضر','أحمر','أسود','بنفسجي','أصفر','برتقالي','بني','وردي'],
-          menuTitle: 'القائمة', home: 'الرئيسية', language: 'اللغة', record: 'السجل',
-          hintLeft: 'يسار: غير متطابق', hintRight: 'يمين: متطابق'
+          menuTitle: 'القائمة', home: 'الرئيسية', language: 'اللغة', help: 'مساعدة',
+          recordEasy: 'سجل السهل', recordMedium: 'سجل المتوسط', recordHard: 'سجل الصعب',
+          difficultyLabel: 'المستوى', difficultyEasy: 'سهل', difficultyMedium: 'متوسط', difficultyHard: 'صعب',
+          hintLeft: 'يسار: غير متطابق', hintRight: 'يمين: متطابق',
+          newRecord: 'سجل جديد | NEW',
+          helpTitle: '🎮 مساعدة',
+          helpBody: `👀 ترى كلمة على الشاشة مكتوبة بلون...
+
+🤔 عليك أن تقرر: هل اللون يطابق معنى الكلمة؟
+
+✅ إذا كان مطابقًا ← اضغط في أي مكان على الجانب الأيمن
+❌ إذا كان مختلفًا ← اضغط في أي مكان على الجانب الأيسر
+
+📘 أمثلة:
+
+• كلمة "أحمر" باللون الأحمر — ✅ يمين
+• كلمة "أزرق" باللون الأخضر — ❌ يسار
+
+⚠️ ملاحظة: في المستوى الصعب، قد تظهر "أسود" كـ"داكن" (نفس المعنى).
+
+⏱️ كل إجابة صحيحة تمنحك وقتًا إضافيًا.
+💀 الإجابة الخاطئة أو انتهاء الوقت ينهي اللعبة.
+
+🎯 كلما زادت الإجابات الصحيحة، زادت نقاطك.
+
+🏆 سجل رقمك القياسي واستمتع باللعبة!`
         }
       };
 
       const colorKeys = ['blue','green','red','black','purple','yellow','orange','brown','pink'];
       const colorCSS = {
-        blue:'#1976D2', green:'#388E3C', red:'#D32F2F', black:'#000000',
-        purple:'#7B1FA2', yellow:'#FBC02D', orange:'#F57C00', brown:'#5D4037', pink:'#D81B60'
+        blue: '#1976D2', green: '#388E3C', red: '#E53935', black: '#000000',
+        purple: '#7B1FA2', yellow: '#FBC02D', orange: '#F57C00', brown: '#795548', pink: '#FF80AB'
       };
 
       let currentLang = 'fa';
       let score = 0;
-      let timeLimit = INITIAL_TIME_LIMIT;
-      let timeLeft = INITIAL_TIME_LIMIT;
+      let timeLimit = DIFFICULTIES[currentDifficulty].initialTime;
+      let timeLeft = timeLimit;
       let timerInterval = null;
       let gameActive = false;
       let gameStarted = false;
@@ -355,10 +720,11 @@
       let currentColorKey = null;
       let confettiParticles = [];
       let confettiAnimationId = null;
-      let record = parseInt(localStorage.getItem('rangoool_record')) || 0;
       let gameOverCooldown = false;
       let cooldownInterval = null;
-      let cooldownSeconds = 0;
+      let cooldownMs = 0;
+      let cooldownTotalMs = 0;
+      let isNewRecord = false;
 
       // Audio
       let audioCtx = null;
@@ -372,7 +738,7 @@
         const gain = audioCtx.createGain();
         osc.type = type;
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+        gain.gain.setValueAtTime(volume * 2, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
         osc.connect(gain); gain.connect(audioCtx.destination);
         osc.start(); osc.stop(audioCtx.currentTime + duration);
@@ -380,6 +746,23 @@
       function soundCorrect() { playTone(880, 'sine', 0.1); }
       function soundWrong() { playTone(220, 'square', 0.2); }
       function soundLose() { playTone(150, 'triangle', 0.4, 0.2); }
+      function playVictorySound() {
+        if (!audioCtx) initAudio();
+        const notes = [523.25, 587.33, 659.25, 783.99, 659.25, 783.99, 880.00, 783.99, 659.25, 523.25, 587.33, 523.25];
+        const durations = [0.3, 0.3, 0.3, 0.4, 0.2, 0.2, 0.4, 0.2, 0.2, 0.3, 0.3, 0.5];
+        let startTime = audioCtx.currentTime;
+        notes.forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, startTime + i * 0.3);
+          gain.gain.setValueAtTime(0.18 * 2, startTime + i * 0.3);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + i * 0.3 + durations[i]);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(startTime + i * 0.3);
+          osc.stop(startTime + i * 0.3 + durations[i]);
+        });
+      }
 
       function vibrateGamepad(duration = 200) {
         const gamepads = navigator.getGamepads();
@@ -393,18 +776,86 @@
         }
       }
 
-      // Canvas confetti
-      function resizeCanvas() { confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight; }
-      window.addEventListener('resize', resizeCanvas); resizeCanvas();
-      function createConfetti() {
-        confettiParticles = [];
-        for (let i=0; i<120; i++) {
-          confettiParticles.push({
-            x: Math.random()*confettiCanvas.width, y: Math.random()*confettiCanvas.height - confettiCanvas.height,
-            size: Math.random()*8+4, speedY: Math.random()*4+2, speedX: Math.random()*2-1,
-            color: `hsl(${Math.random()*360},80%,65%)`, rotation: Math.random()*360, rotationSpeed: Math.random()*10-5
+      // Background stars
+      const stars = [];
+      const STAR_COUNT = 60;
+      function initStars() {
+        stars.length = 0;
+        for (let i = 0; i < STAR_COUNT; i++) {
+          stars.push({
+            x: Math.random() * starsCanvas.width,
+            y: Math.random() * starsCanvas.height,
+            size: Math.random() * 2 + 1,
+            color: `hsl(${Math.random() * 360}, 70%, 60%)`,
+            speedX: (Math.random() - 0.5) * 0.2,
+            speedY: Math.random() * 0.3 + 0.1,
+            opacity: Math.random() * 0.3 + 0.1
           });
         }
+      }
+      function resizeStarsCanvas() {
+        starsCanvas.width = window.innerWidth;
+        starsCanvas.height = window.innerHeight;
+        initStars();
+      }
+      window.addEventListener('resize', resizeStarsCanvas);
+      resizeStarsCanvas();
+      function animateStars() {
+        starsCtx.clearRect(0, 0, starsCanvas.width, starsCanvas.height);
+        stars.forEach(star => {
+          star.x += star.speedX;
+          star.y += star.speedY;
+          if (star.y > starsCanvas.height + 10) { star.y = -10; star.x = Math.random() * starsCanvas.width; }
+          if (star.x < -10) star.x = starsCanvas.width + 10;
+          if (star.x > starsCanvas.width + 10) star.x = -10;
+          starsCtx.beginPath();
+          starsCtx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+          starsCtx.fillStyle = star.color;
+          starsCtx.globalAlpha = star.opacity;
+          starsCtx.fill();
+          starsCtx.globalAlpha = 1;
+        });
+        requestAnimationFrame(animateStars);
+      }
+      animateStars();
+
+      // Confetti
+      function resizeConfettiCanvas() { confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight; }
+      window.addEventListener('resize', resizeConfettiCanvas); resizeConfettiCanvas();
+      function createConfetti(starMode = false) {
+        confettiParticles = [];
+        const count = starMode ? 100 : 120;
+        for (let i=0; i<count; i++) {
+          confettiParticles.push({
+            x: Math.random()*confettiCanvas.width,
+            y: Math.random()*confettiCanvas.height - confettiCanvas.height,
+            size: Math.random()*8+4,
+            speedY: Math.random()*4+2,
+            speedX: Math.random()*2-1,
+            color: `hsl(${Math.random()*360},80%,65%)`,
+            rotation: Math.random()*360,
+            rotationSpeed: Math.random()*10-5,
+            type: starMode ? 'star' : 'rect'
+          });
+        }
+      }
+      function drawStar(cx, cy, size, rotation, color) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rotation * Math.PI / 180);
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        const outerRadius = size;
+        const innerRadius = size / 2.5;
+        for (let i = 0; i < 5; i++) {
+          const outerAngle = (i * 72 - 90) * Math.PI / 180;
+          const innerAngle = (i * 72 + 36 - 90) * Math.PI / 180;
+          ctx.lineTo(outerRadius * Math.cos(outerAngle), outerRadius * Math.sin(outerAngle));
+          ctx.lineTo(innerRadius * Math.cos(innerAngle), innerRadius * Math.sin(innerAngle));
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
       }
       function stopConfetti() { confettiParticles = []; if(confettiAnimationId) cancelAnimationFrame(confettiAnimationId); ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height); }
       function animateConfetti() {
@@ -415,34 +866,55 @@
           p.y += p.speedY; p.x += p.speedX; p.rotation += p.rotationSpeed;
           if(p.y < confettiCanvas.height+50) {
             alive = true;
-            ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rotation*Math.PI/180);
-            ctx.fillStyle = p.color; ctx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);
-            ctx.restore();
+            if (p.type === 'star') drawStar(p.x, p.y, p.size, p.rotation, p.color);
+            else {
+              ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rotation*Math.PI/180);
+              ctx.fillStyle = p.color; ctx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);
+              ctx.restore();
+            }
           }
         });
         if(alive) confettiAnimationId = requestAnimationFrame(animateConfetti);
         else stopConfetti();
       }
-      function triggerConfetti() { stopConfetti(); createConfetti(); animateConfetti(); }
+      function triggerConfetti(starMode = false) { stopConfetti(); createConfetti(starMode); animateConfetti(); }
 
-      function updateRecordDisplay() { recordDisplay.textContent = `🏆 ${translations[currentLang].record}: ${record}`; }
-
+      function updateRecordDisplay() {
+        recordEasy.textContent = `🏆 ${translations[currentLang].recordEasy}: ${records.easy}`;
+        recordMedium.textContent = `🏆 ${translations[currentLang].recordMedium}: ${records.medium}`;
+        recordHard.textContent = `🏆 ${translations[currentLang].recordHard}: ${records.hard}`;
+      }
       function updateTimeBar() {
         const ratio = timeLimit > 0 ? timeLeft / timeLimit : 0;
         timeBarFill.style.width = (ratio * 100) + '%';
         timeBarFill.style.backgroundColor = `hsl(${ratio * 120}, 70%, 50%)`;
       }
-
+      function updateSelectLabels() {
+        const t = translations[currentLang];
+        difficultyButton.querySelector('span:first-child').textContent = t['difficulty' + currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1)];
+        const diffItems = difficultyOptions.querySelectorAll('li');
+        diffItems[0].textContent = t.difficultyEasy;
+        diffItems[1].textContent = t.difficultyMedium;
+        diffItems[2].textContent = t.difficultyHard;
+        langButton.querySelector('span:first-child').textContent = currentLang === 'fa' ? 'فارسی' : (currentLang === 'en' ? 'English' : 'العربية');
+        helpBtn.textContent = '❓ ' + t.help;
+        helpTitle.textContent = t.helpTitle;
+        helpBody.innerHTML = t.helpBody.replace(/\n/g, '<br>');
+      }
       function updateUI() {
         scoreDisplay.textContent = score;
         timerDisplay.textContent = (timeLeft/1000).toFixed(2);
         document.querySelector('.main-title').textContent = translations[currentLang].title;
-        document.querySelector('.hint span:first-child').textContent = '👈 '+translations[currentLang].hintLeft;
-        document.querySelector('.hint span:last-child').textContent = translations[currentLang].hintRight+' 👉';
+        document.querySelector('.hint span:first-child').textContent = '👉 ' + translations[currentLang].hintRight;
+        document.querySelector('.hint span:last-child').textContent = '👈 ' + translations[currentLang].hintLeft;
         document.querySelector('.sidebar h3').textContent = translations[currentLang].menuTitle;
-        homeBtn.textContent = '🏠 '+translations[currentLang].home;
-        document.querySelector('.sidebar label').textContent = '🌐 '+translations[currentLang].language;
+        homeBtn.textContent = '🏠 ' + translations[currentLang].home;
+        const labels = document.querySelectorAll('.sidebar label');
+        if (labels.length >= 1) labels[0].textContent = '🎮 ' + translations[currentLang].difficultyLabel;
+        if (labels.length >= 2) labels[1].textContent = '🌐 ' + translations[currentLang].language;
         updateRecordDisplay();
+        updateSelectLabels();
+        newRecordBadge.textContent = translations[currentLang].newRecord;
         if(!gameActive && !gameStarted && !gameOverCooldown) {
           overlayGameTitle.textContent = translations[currentLang].title;
           overlayMessage.textContent = translations[currentLang].startMsg;
@@ -450,52 +922,39 @@
         updateTimeBar();
       }
 
-      function getMatchProbability() {
-        if (score < DIFFICULTY_THRESHOLD) return INITIAL_MATCH_PROB;
-        return Math.max(MIN_MATCH_PROB, INITIAL_MATCH_PROB - (score - DIFFICULTY_THRESHOLD) * MATCH_PROB_STEP);
-      }
-
-      function getTimeLimit(currentScore) {
-        if (currentScore < DIFFICULTY_THRESHOLD) return INITIAL_TIME_LIMIT;
-        return Math.max(MIN_TIME_LIMIT, INITIAL_TIME_LIMIT - (currentScore - DIFFICULTY_THRESHOLD) * TIME_STEP);
-      }
-
-      function getBonusTime(currentScore) {
-        if (currentScore < DIFFICULTY_THRESHOLD) return INITIAL_BONUS;
-        return Math.max(MIN_BONUS, INITIAL_BONUS - (currentScore - DIFFICULTY_THRESHOLD) * BONUS_STEP);
-      }
-
+      function getTimeLimit() { return DIFFICULTIES[currentDifficulty].initialTime; }
       function getRandomWordAndColor() {
         const idx = Math.floor(Math.random()*colorKeys.length);
         const wKey = colorKeys[idx];
         let cKey;
-        const matchProb = getMatchProbability();
-        if(Math.random() < matchProb) cKey = wKey;
+        if(Math.random() < 0.5) cKey = wKey;
         else {
           const others = colorKeys.filter(c=>c!==wKey);
           cKey = others[Math.floor(Math.random()*others.length)];
         }
         return {wordKey:wKey, colorKey:cKey};
       }
-
       function displayWord() {
         const {wordKey, colorKey} = getRandomWordAndColor();
         currentWordKey = wordKey;
         currentColorKey = colorKey;
-        wordDisplay.textContent = translations[currentLang].colors[colorKeys.indexOf(wordKey)];
+        let wordText = translations[currentLang].colors[colorKeys.indexOf(wordKey)];
+        if (currentLang === 'fa' && currentDifficulty === 'hard' && wordKey === 'black') {
+          wordText = Math.random() < 0.5 ? 'سیاه' : 'مشکی';
+        }
+        wordDisplay.textContent = wordText;
         wordDisplay.style.color = colorCSS[colorKey];
         wordDisplay.style.transform = 'scale(1.05)';
         setTimeout(()=> wordDisplay.style.transform='scale(1)', 80);
       }
-
       function resetTimer() {
         clearInterval(timerInterval);
-        timeLimit = getTimeLimit(score);
+        timeLimit = getTimeLimit();
         timeLeft = timeLimit;
+        currentBonus = DIFFICULTIES[currentDifficulty].initialBonus;
         timerDisplay.textContent = (timeLeft/1000).toFixed(2);
         updateTimeBar();
       }
-
       function startTimer() {
         resetTimer();
         timerInterval = setInterval(()=>{
@@ -511,10 +970,9 @@
           }
         }, 30);
       }
-
       function increaseTimer() {
-        const bonus = getBonusTime(score);
-        timeLeft = Math.min(timeLimit, timeLeft + bonus);
+        timeLeft = Math.min(timeLimit, timeLeft + currentBonus);
+        currentBonus = Math.max(DIFFICULTIES[currentDifficulty].minBonus, currentBonus - DIFFICULTIES[currentDifficulty].reductionStep);
         timerDisplay.textContent = (timeLeft/1000).toFixed(2);
         updateTimeBar();
       }
@@ -525,10 +983,14 @@
         if(gameActive) return;
         stopConfetti();
         overlay.classList.add('hidden');
+        newRecordBadge.style.display = 'none';
+        cooldownTimerContainer.style.display = 'none';
+        isNewRecord = false;
         gameActive = true;
         gameStarted = true;
         score = 0;
         scoreDisplay.textContent = '0';
+        currentBonus = DIFFICULTIES[currentDifficulty].initialBonus;
         displayWord();
         startTimer();
         updateUI();
@@ -541,36 +1003,63 @@
         gameStarted = false;
         soundLose();
         vibrateGamepad(300);
-        if(score > record) {
-          record = score;
-          localStorage.setItem('rangoool_record', record);
+        isNewRecord = false;
+        if(score > records[currentDifficulty]) {
+          records[currentDifficulty] = score;
+          localStorage.setItem('rangoool_record_' + currentDifficulty, score);
+          isNewRecord = true;
         }
-        triggerConfetti();
+        if (isNewRecord) {
+          playVictorySound();
+          triggerConfetti(true);
+          newRecordBadge.style.display = 'block';
+        } else {
+          triggerConfetti(false);
+        }
         overlayGameTitle.textContent = translations[currentLang].gameOverTitle;
         overlayScore.textContent = score;
         overlayScore.style.display = 'block';
         overlay.classList.remove('hidden');
         wordDisplay.textContent = '';
         updateRecordDisplay();
-        // Cooldown
         gameOverCooldown = true;
-        cooldownSeconds = 2;
-        overlayMessage.textContent = translations[currentLang].cooldownMsg + ' (' + cooldownSeconds + ')';
+        cooldownTotalMs = isNewRecord ? 4000 : 2000;
+        cooldownMs = cooldownTotalMs;
+        cooldownTimerContainer.style.display = 'block';
+        const circumference = 2 * Math.PI * 24;
+        cooldownProgress.style.strokeDasharray = circumference;
+        cooldownProgress.style.strokeDashoffset = 0;
+        updateCooldownDisplay();
+        cooldownMessage.textContent = isNewRecord ? translations[currentLang].cooldownMsgNewRecord : translations[currentLang].cooldownMsg;
+        clearInterval(cooldownInterval);
         cooldownInterval = setInterval(() => {
-          cooldownSeconds--;
-          if (cooldownSeconds <= 0) {
+          cooldownMs -= 100;
+          if (cooldownMs <= 0) {
             clearInterval(cooldownInterval);
             cooldownInterval = null;
             gameOverCooldown = false;
             overlayMessage.textContent = translations[currentLang].startMsg;
             overlayScore.style.display = 'none';
+            newRecordBadge.style.display = 'none';
+            cooldownTimerContainer.style.display = 'none';
           } else {
-            overlayMessage.textContent = translations[currentLang].cooldownMsg + ' (' + cooldownSeconds + ')';
+            updateCooldownDisplay();
           }
-        }, 1000);
+        }, 100);
         timeLeft = 0;
         updateTimeBar();
         updateUI();
+      }
+
+      function updateCooldownDisplay() {
+        const remainingSeconds = cooldownMs / 1000;
+        const intPart = Math.floor(remainingSeconds);
+        const decimalPart = Math.floor((remainingSeconds - intPart) * 100);
+        cooldownInt.textContent = intPart;
+        cooldownDecimal.textContent = '.' + (decimalPart < 10 ? '0' + decimalPart : decimalPart);
+        const circumference = 2 * Math.PI * 24;
+        const offset = circumference * (1 - cooldownMs / cooldownTotalMs);
+        cooldownProgress.style.strokeDashoffset = offset;
       }
 
       function handleUserClick(side) {
@@ -582,7 +1071,7 @@
           score++;
           scoreDisplay.textContent = score;
           displayWord();
-          increaseTimer(); // increase time instead of resetting
+          increaseTimer();
         } else {
           soundWrong();
           vibrateGamepad(100);
@@ -597,65 +1086,142 @@
         gameActive = false;
         gameStarted = false;
         score = 0;
-        timeLimit = INITIAL_TIME_LIMIT;
-        timeLeft = INITIAL_TIME_LIMIT;
+        timeLimit = DIFFICULTIES[currentDifficulty].initialTime;
+        timeLeft = timeLimit;
+        currentBonus = DIFFICULTIES[currentDifficulty].initialBonus;
         wordDisplay.textContent = '';
         wordDisplay.style.color = '#000';
         scoreDisplay.textContent = '0';
-        timerDisplay.textContent = '10.00';
+        timerDisplay.textContent = (timeLeft/1000).toFixed(2);
         timeBarFill.style.width = '100%';
         timeBarFill.style.backgroundColor = '#4CAF50';
         overlayGameTitle.textContent = translations[currentLang].title;
         overlayMessage.textContent = translations[currentLang].startMsg;
         overlayScore.style.display = 'none';
+        newRecordBadge.style.display = 'none';
+        cooldownTimerContainer.style.display = 'none';
         overlay.classList.remove('hidden');
         gameOverCooldown = false;
-        cooldownSeconds = 0;
+        cooldownMs = 0;
         updateUI();
       }
 
-      // Mouse / touch handlers
-      document.body.addEventListener('click', e => {
-        if(e.target.closest('#menuToggle') || e.target.closest('#sidebar')) return;
-        if(!gameActive) {
-          startGame();
-          return;
-        }
-        const x = e.clientX || (e.touches && e.touches[0]?.clientX) || 0;
-        handleUserClick(x > window.innerWidth/2 ? 'right' : 'left');
-      });
-      document.body.addEventListener('touchstart', e => {
-        if(e.target.closest('#menuToggle') || e.target.closest('#sidebar')) return;
-      }, {passive:true});
+      function closeAllSelects() {
+        document.querySelectorAll('.select-options').forEach(ul => {
+          ul.classList.remove('open');
+          ul.previousElementSibling?.querySelector('.select-arrow')?.classList.remove('open');
+        });
+      }
 
-      // Menu handlers
-      menuToggle.addEventListener('click', e => {
+      function openHelp() {
+        helpOverlay.classList.add('open');
+        sidebar.classList.remove('open');
+        closeAllSelects();
+      }
+
+      function closeHelp() {
+        helpOverlay.classList.remove('open');
+        sidebar.classList.add('open'); // بازگشت به منو
+      }
+
+      // Help event listeners
+      helpBtn.addEventListener('click', openHelp);
+      helpCloseBtn.addEventListener('click', (e) => {
+        closeHelp();
+        e.stopPropagation(); // جلوگیری از انتشار به body
+      });
+      helpOverlay.addEventListener('click', (e) => {
+        if (e.target === helpOverlay) {
+          closeHelp();
+        }
+        e.stopPropagation(); // جلوگیری از انتشار به body
+      });
+
+      // Custom select events
+      difficultyButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = difficultyOptions.classList.contains('open');
+        closeAllSelects();
+        if (!isOpen) {
+          difficultyOptions.classList.add('open');
+          difficultyButton.querySelector('.select-arrow').classList.add('open');
+        }
+      });
+      langButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = langOptions.classList.contains('open');
+        closeAllSelects();
+        if (!isOpen) {
+          langOptions.classList.add('open');
+          langButton.querySelector('.select-arrow').classList.add('open');
+        }
+      });
+
+      difficultyOptions.addEventListener('click', (e) => {
+        const li = e.target.closest('li');
+        if (!li) return;
+        currentDifficulty = li.dataset.value;
+        currentBonus = DIFFICULTIES[currentDifficulty].initialBonus;
+        timeLimit = DIFFICULTIES[currentDifficulty].initialTime;
+        resetToIdle();
+        updateUI();
+        closeAllSelects();
+      });
+
+      langOptions.addEventListener('click', (e) => {
+        const li = e.target.closest('li');
+        if (!li) return;
+        currentLang = li.dataset.value;
+        document.documentElement.lang = currentLang;
+        document.documentElement.dir = (currentLang === 'en') ? 'ltr' : 'rtl';
+        updateUI();
+        if (gameActive && currentWordKey) {
+          wordDisplay.textContent = translations[currentLang].colors[colorKeys.indexOf(currentWordKey)];
+        }
+        if (!gameActive && !gameOverCooldown) {
+          overlayGameTitle.textContent = translations[currentLang].title;
+          overlayMessage.textContent = translations[currentLang].startMsg;
+        }
+        closeAllSelects();
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.custom-select')) {
+          closeAllSelects();
+        }
+      });
+
+      menuToggle.addEventListener('click', (e) => {
         e.stopPropagation();
         initAudio();
         sidebar.classList.toggle('open');
+        closeAllSelects();
       });
+
       homeBtn.addEventListener('click', () => {
         sidebar.classList.remove('open');
         resetToIdle();
       });
-      document.addEventListener('click', e => {
-        if(sidebar.classList.contains('open') && !e.target.closest('#sidebar') && !e.target.closest('#menuToggle'))
-          sidebar.classList.remove('open');
-      });
-      langSelect.addEventListener('change', e => {
-        currentLang = e.target.value;
-        document.documentElement.lang = currentLang;
-        document.documentElement.dir = (currentLang==='en')?'ltr':'rtl';
-        updateUI();
-        if(gameActive && currentWordKey)
-          wordDisplay.textContent = translations[currentLang].colors[colorKeys.indexOf(currentWordKey)];
-        if(!gameActive && !gameOverCooldown) {
-          overlayGameTitle.textContent = translations[currentLang].title;
-          overlayMessage.textContent = translations[currentLang].startMsg;
+
+      document.body.addEventListener('click', (e) => {
+        if (helpOverlay.classList.contains('open')) return; // در صورت باز بودن راهنما، هیچ‌کاری نکن
+        if (sidebar.classList.contains('open')) {
+          if (!e.target.closest('#sidebar') && !e.target.closest('#menuToggle')) {
+            sidebar.classList.remove('open');
+            closeAllSelects();
+            return;
+          }
+          return;
         }
+        if (e.target.closest('#menuToggle') || e.target.closest('#sidebar') || e.target.closest('.custom-select')) return;
+        if (!gameActive) {
+          startGame();
+          return;
+        }
+        const x = e.clientX || (e.touches && e.touches[0]?.clientX) || 0;
+        handleUserClick(x > window.innerWidth / 2 ? 'right' : 'left');
       });
 
-      // Gamepad API (unchanged from previous)
       let gamepadConnected = false;
       const gamepadState = { leftPressed: false, rightPressed: false, touchClick: false };
       function handleGamepadInput() {
@@ -674,7 +1240,7 @@
           const r2 = buttons[7]?.value > 0.5 || false;
           const touchClick = buttons[13]?.pressed || false;
 
-          if (!sidebar.classList.contains('open')) {
+          if (!sidebar.classList.contains('open') && !helpOverlay.classList.contains('open')) {
             const leftAction = dpadLeft || l1 || l2 || (axes[0] < -0.5) || (square && !gamepadState.square);
             const rightAction = dpadRight || r1 || r2 || (axes[0] > 0.5) || (cross && !gamepadState.x);
             if (leftAction && !gamepadState.leftPressed) {
@@ -703,12 +1269,10 @@
         gamepadConnected = false;
       });
 
-      // Initialization
-      updateRecordDisplay();
       updateUI();
       resetToIdle();
-      document.body.addEventListener('touchstart', initAudio, {once: true});
+      document.body.addEventListener('touchstart', initAudio, { once: true });
     })();
   </script>
 </body>
-  </html>
+        </html>
